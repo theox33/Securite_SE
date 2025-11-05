@@ -62,7 +62,3 @@ That means the file was altered, corrupted, or tampered with during download. Yo
 
 Checking the SHA256 verifies **integrity** (the file wasn’t modified accidentally).
 To verify **authenticity** (that it’s really from OpenSSL), you should also check the **PGP signature** if the OpenSSL team provides one (a `.asc` or `.sig` file). That’s the only way to ensure it hasn’t been replaced by a malicious version.
-
----
-
-Would you like me to show you **how to verify the PGP signature** for OpenSSL downloads as well?

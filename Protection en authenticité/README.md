@@ -20,32 +20,22 @@ Si la signature est valide, le programme ne renvoie aucune sortie et se termine 
 
 Il n'est pas possible de signer directement un fichier volumineux avec `pkeyutl`. La bonne pratique consiste à créer un condensat (hash) du fichier, puis à signer ce condensat.
 
-Créer un hash du fichier à l'aide de SHA-256.
+### Cote expéditeur:
+Créer un hash du fichier à l'aide de SHA-256 et le signer avec la clé privée automatiquement.
 
 ```bash
-openssl dgst -sha256 -out hello.hash hello.txt
-``` 
-
-Signer le hash.
-
-```bash
-openssl pkeyutl -sign -in hello.hash -inkey private.key -out hello.sig
+openssl dgst -sha256 -sign private.key -out hello.sig hello.txt
 ``` 
 
 Envoyer le fichier orignal, et le hash avec sa signature.
 
-Coté destinataire:
-Pour vérifier commencer vérifier que le hash reçu est bien signé par l'expéditeur.
+### Coté destinataire:
+Pour vérifier l'authenticité du fichier reçu, recalculer le hash du fichier reçu et vérifier la signature avec la clé publique.
 
 ```bash
-openssl pkeyutl -verify -in hello.hash -sigfile hello.sig -inkey public.key -pubin
+openssl dgst -sha256 -verify public.key -signature hello.sig hello.txt
 ``` 
 
-Si la signature est valide, on peut alors recalculer le hash du fichier reçu et le comparer avec le hash reçu.
-
-```bash
-openssl dgst -sha256 -out hello_rec.hash hello.txt
-```
 Comparer les deux hash.
 
 ```bash
