@@ -5,9 +5,9 @@ Code C pour les deux machines :
 ```c
 #include <stdio.h>
 
-int main(void){
-	printf("Hello world");
-	return 0;
+int main(void) {
+          puts("Hello, world!");
+          return 0;
 }
 ```
 
@@ -18,6 +18,123 @@ gcc -o hello hello.c
 ``` 
 
 ## Linux x86_64 (amd64)
+
+- Compilation avec vérifications supplémentaires :
+
+```bash
+gcc -Wall -Wextra -O2 -o hello hello.c
+```
+
+- Exécution :
+
+```bash
+./hello
+```
+
+- Sortie obtenue :
+
+```text
+Hello, world!
+```
+
+Résultat du readelf pour l'exécutable x86_64 (`LANG=C readelf -h hello` et `readelf -S hello`) :
+
+```bash
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x1080
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          13976 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         13
+  Size of section headers:           64 (bytes)
+  Number of section headers:         31
+  Section header string table index: 30
+
+There are 31 section headers, starting at offset 0x3698:
+
+Section Headers:
+  [Nr] Name              Type             Address           Offset
+       Size              EntSize          Flags  Link  Info  Align
+  [ 0]                   NULL             0000000000000000  00000000
+       0000000000000000  0000000000000000           0     0     0
+  [ 1] .interp           PROGBITS         0000000000000318  00000318
+       000000000000001c  0000000000000000   A       0     0     1
+  [ 2] .note.gnu.pr[...] NOTE             0000000000000338  00000338
+       0000000000000030  0000000000000000   A       0     0     8
+  [ 3] .note.gnu.bu[...] NOTE             0000000000000368  00000368
+       0000000000000024  0000000000000000   A       0     0     4
+  [ 4] .note.ABI-tag     NOTE             000000000000038c  0000038c
+       0000000000000020  0000000000000000   A       0     0     4
+  [ 5] .gnu.hash         GNU_HASH         00000000000003b0  000003b0
+       0000000000000024  0000000000000000   A       6     0     8
+  [ 6] .dynsym           DYNSYM           00000000000003d8  000003d8
+       00000000000000a8  0000000000000018   A       7     1     8
+  [ 7] .dynstr           STRTAB           0000000000000480  00000480
+       000000000000008d  0000000000000000   A       0     0     1
+  [ 8] .gnu.version      VERSYM           000000000000050e  0000050e
+       000000000000000e  0000000000000002   A       6     0     2
+  [ 9] .gnu.version_r    VERNEED          0000000000000520  00000520
+       0000000000000030  0000000000000000   A       7     1     8
+  [10] .rela.dyn         RELA             0000000000000550  00000550
+       00000000000000c0  0000000000000018   A       6     0     8
+  [11] .rela.plt         RELA             0000000000000610  00000610
+       0000000000000018  0000000000000018  AI       6    24     8
+  [12] .init             PROGBITS         0000000000001000  00001000
+       000000000000001b  0000000000000000  AX       0     0     4
+  [13] .plt              PROGBITS         0000000000001020  00001020
+       0000000000000020  0000000000000010  AX       0     0     16
+  [14] .plt.got          PROGBITS         0000000000001040  00001040
+       0000000000000010  0000000000000010  AX       0     0     16
+  [15] .plt.sec          PROGBITS         0000000000001050  00001050
+       0000000000000010  0000000000000010  AX       0     0     16
+  [16] .text             PROGBITS         0000000000001060  00001060
+       0000000000000109  0000000000000000  AX       0     0     16
+  [17] .fini             PROGBITS         000000000000116c  0000116c
+       000000000000000d  0000000000000000  AX       0     0     4
+  [18] .rodata           PROGBITS         0000000000002000  00002000
+       0000000000000012  0000000000000000   A       0     0     4
+  [19] .eh_frame_hdr     PROGBITS         0000000000002014  00002014
+       0000000000000034  0000000000000000   A       0     0     4
+  [20] .eh_frame         PROGBITS         0000000000002048  00002048
+       00000000000000a4  0000000000000000   A       0     0     8
+  [21] .init_array       INIT_ARRAY       0000000000003db8  00002db8
+       0000000000000008  0000000000000008  WA       0     0     8
+  [22] .fini_array       FINI_ARRAY       0000000000003dc0  00002dc0
+       0000000000000008  0000000000000008  WA       0     0     8
+  [23] .dynamic          DYNAMIC          0000000000003dc8  00002dc8
+       00000000000001f0  0000000000000010  WA       7     0     8
+  [24] .got              PROGBITS         0000000000003fb8  00002fb8
+       0000000000000048  0000000000000008  WA       0     0     8
+  [25] .data             PROGBITS         0000000000004000  00003000
+       0000000000000010  0000000000000000  WA       0     0     8
+  [26] .bss              NOBITS           0000000000004010  00003010
+       0000000000000008  0000000000000000  WA       0     0     1
+  [27] .comment          PROGBITS         0000000000000000  00003010
+       000000000000002b  0000000000000001  MS       0     0     1
+  [28] .symtab           SYMTAB           0000000000000000  00003040
+       0000000000000360  0000000000000018          29    18     8
+  [29] .strtab           STRTAB           0000000000000000  000033a0
+       00000000000001db  0000000000000000           0     0     1
+  [30] .shstrtab         STRTAB           0000000000000000  0000357b
+       000000000000011a  0000000000000000           0     0     1
+```
+
+### Exercice 3.2 — Analyse du binaire
+
+- `readelf -S hello` montre **31 sections** dans le binaire.
+- Le nom du fichier source apparaît dans la table des symboles (`readelf -Ws hello | grep hello.c`).
+- Les exécutables générés sont livrables au client, mais ils dépendent de la glibc du système. Pour limiter les informations de debug avant livraison, il est recommandé de stripper le binaire ou de fournir une version `hello.stripped`.
 
 
 ## Linux (VM sur Mac) aarch64 (arm64)
@@ -331,3 +448,10 @@ Displaying notes found in: .note.ABI-tag
     OS: Linux, ABI: 3.7.0
           
 ```
+
+### Exercice 4 — Taille et strip
+
+## Résultats pour Linux x86_64 :
+- Taille initiale (non strippée) : `hello` → **15 960 octets** (`stat -c "%n %s" hello`).
+- Binaire strippé : `strip -o hello.stripped hello`.
+- Taille après strip : `hello.stripped` → **14 472 octets** (`stat -c "%n %s" hello.stripped`).
