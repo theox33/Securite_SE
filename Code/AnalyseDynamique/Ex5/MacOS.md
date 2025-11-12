@@ -8,5 +8,3 @@ Les Registres principaux sont :
 | `rbp`  | `x29` | Frame pointer       |
 | `rsp`  | `sp`  | Stack pointer       |
 | `rip`  | `pc`  | Instruction pointer |
-
-
