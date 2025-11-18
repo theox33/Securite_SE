@@ -1,0 +1,55 @@
+@startuml perimetre-ebios-ps4
+title Périmètre métier et technique – Analyse EBIOS PS4 (Sony)
+
+' === STYLISATION ===
+skinparam componentStyle rectangle
+skinparam rectangle {
+  BackgroundColor #E3E9F0
+  BorderColor #003087
+  FontColor black
+}
+skinparam actorStyle awesome
+skinparam note {
+  BackgroundColor #F8F9FA
+  BorderColor #999
+}
+skinparam arrow {
+  Color #003087
+  FontColor #003087
+}
+
+' === COMPOSANTS TECHNIQUES ===
+component "TV" as TV
+component "Sono" as Sono
+component "CD" as CD
+component "Manette" as Manette
+component "Disque dur interne" as HDD
+component "Disque dur externe" as HDDext
+component "PS4" as PS4
+component "Box" as Box
+component "Internet" as Internet
+component "Clavier" as Clavier
+component "Caméra" as Camera
+component "Casque" as Casque
+component "Clé USB" as USB
+
+
+
+' === INTERACTIONS ===
+PS4 --> Sono : PiF
+PS4 --> TV : HDMI
+PS4 --> Box : WiFi
+PS4 --> Box : Ethernet
+PS4 --> HDD : SATA
+PS4 --> CD : Lecture jeux / médias
+PS4 --> Manette : USB
+PS4 --> Camera : USB
+PS4 --> Clavier : USB
+PS4 --> USB : USB
+PS4 --> Casque : USB
+PS4 --> HDDext : USB
+PS4 --> Casque : Bluetooth
+PS4 --> Manette : Bluetooth
+Box --> Internet : Connexion Internet
+
+@enduml
