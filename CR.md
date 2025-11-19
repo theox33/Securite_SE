@@ -1,3 +1,17 @@
+---
+header-includes:
+  - |
+    \lstset{
+      basicstyle=\ttfamily\small, % police monospacée
+      numbers=left,               % numéros de ligne à gauche
+      numberstyle=\tiny,          % style des numéros
+      frame=single,               % cadre autour du code
+      breaklines=true,            % retour à la ligne automatique
+      breakatwhitespace=true,     % coupe plutôt aux espaces
+      showstringspaces=false      % n’affiche pas les espaces dans les strings
+    }
+---
+
 # Compte rendu des activités du projet
 
 ## Sommaire
@@ -616,15 +630,17 @@ Modéliser le **périmètre métier et technique** d’un système (ici une PS4 
 ### 8.3 Contenu du diagramme
 
 Le fichier définit des composants techniques :
+
 - `PS4`, `TV`, `Sono`, `CD`, `Disque dur interne`, `Disque dur externe`, `Box`, `Internet`, `Clavier`, `Caméra`, `Casque`, `Clé USB`, `Manette`…
 
 Et les **liaisons** :
-- PS4 <-> TV : HDMI ;
-- PS4 <-> Sono : audio (PiF) ;
-- PS4 <-> Box : WiFi, Ethernet ;
-- PS4 <-> Manette / Clavier / Caméra / USB / Casque / HDD externe : USB ;
-- PS4 <-> Casque / Manette : Bluetooth ;
-- Box <-> Internet : connexion réseau.
+
+- PS4 <=> TV : HDMI
+- PS4 <=> Sono : audio (PiF)
+- PS4 <=> Box : WiFi, Ethernet
+- PS4 <=> Manette / Clavier / Caméra / USB / Casque / HDD externe : USB
+- PS4 <=> Casque / Manette : Bluetooth
+- Box <=> Internet : connexion réseau.
 
 ### 8.4 Génération du diagramme
 
