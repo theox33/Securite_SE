@@ -1,53 +1,92 @@
-# Analyse CDS CSPN de l'Outil de Protection et de Signature
+---
+title: "Analyse CDS CSPN de l'Outil de Protection et de Signature"
+subtitle: "EBIOS synthèse"
+author: "Élouan LERISSEL"
+date: "19 Novembre 2025"
+lang: fr-FR
 
-## Chapitre 1 : Contexte
+toc: true
+toc-depth: 2
+toc-title: "Sommaire"
+number-sections: true
+secnumdepth: 3
 
-### Présentation de l'outil
+pdf-engine: pdflatex
+geometry:
+  - margin=1in
+fontsize: 11pt
+linestretch: 1.15
+pagestyle: headings
+colorlinks: true
+linkcolor: blue
+urlcolor: blue
+
+highlight-style: tango
+listings: true
+
+header-includes:
+  - \usepackage{needspace}
+  - \usepackage{etoolbox}
+  - \usepackage{float}
+  - \clubpenalty=10000
+  - \widowpenalty=10000
+  - \displaywidowpenalty=10000
+  - \preto\section{\needspace{4\baselineskip}}
+  - \preto\subsection{\needspace{3\baselineskip}}
+  - \preto\subsubsection{\needspace{3\baselineskip}}
+  - \AtBeginEnvironment{longtable}{\needspace{7\baselineskip}}
+---
+<!-- Command : pandoc -t pdf -f markdown ./analyse.md -o ./EBIOS.pdf -->
+
+# Chapitre 1 : Contexte
+
+## Présentation de l'outil
 Le produit Signop Référence 098 345 version 1.0.2 est un outil de signature de logiciel.
 Cet outil récupère sur des CD ROM des logiciels de produits embarqués qu’il signe. Les logiciels signés sont ensuite gravés sur des CD-ROM.
 La clé de signature est injectée une fois en phase de configuration à travers un CD-ROM.
 
-### Périmètre
+## Périmètre
+
 On considère le périmètre suivant :
+
 - Poste de signature (OS Linux durci, application de signature Signop).
 - Médias amont (CD-ROM source des logiciels à signer).
 - Médias aval (CD-ROM des logiciels signés).
 - Clé privée de signature (stockée sur le poste de signature).
 
 On exclut du périmètre :
+
 - Le processus de développement du logiciel source.
 - Le transport et la distribution des médias aval et amont.
 - Les quelconques services de maintenance necessaires.
 
 On considère les éléments suivant :
+
 - l'outil est déployé sur un poste isolé, non connecté à un réseau. 
 - L'outils refuse toute forme de communication en dehors des médias amont et aval (hors maintenance).
 - Les opérateurs utilisant l'outil sont formés.
 - Les médias amont et aval sont fournis par un tiers de confiance.
 
-### Biens et services essentiels
+## Biens et services essentiels
 
-Notation: C=Confidentialité, I=Intégrité, D=Disponibilité, T=Traçabilité, A=Authenticité.
+*Notation: C=Confidentialité, I=Intégrité, D=Disponibilité, T=Traçabilité, A=Authenticité.*
 
-#### Services
+### Services
+| ID  | Bien / Service                | Description                                                                 | Criticité | Besoins |
+| --- | ----------------------------- | --------------------------------------------------------------------------- | --------- | ------- |
+| S1  | Service de signature          | Processus et application réalisant la signature des binaires                | 3/4       | I, D    |
+| S2  | Service de gestion des médias | Acceptation, contrôle (scans, hashes) et transfert des médias amont et aval | 3/4       | I, D    |
+| S3  | Service de journalisation     | Collecte, protection et conservation des journaux de signature              | 2/4       | I, T, A |
 
-| ID  | Bien / Service                | Description                                                                 | Criticité | Besoins principaux |
-| --- | ----------------------------- | --------------------------------------------------------------------------- | --------- | ------------------ |
-| S1  | Service de signature          | Processus et application réalisant la signature des binaires                | 3/4       | I, D               |
-| S2  | Service de gestion des médias | Acceptation, contrôle (scans, hashes) et transfert des médias amont et aval | 3/4       | I, D               |
-| S3  | Service de journalisation     | Collecte, protection et conservation des journaux de signature              | 2/4       | I, T, A            |
+### Biens
+| ID  | Bien / Service          | Description                          | Criticité | Besoins |
+| --- | ----------------------- | ------------------------------------ | --------- | ------- |
+| B1  | Clé privée de signature | Secret de signature                  | 4/4       | C, I, A |
+| B2  | Logiciel signé          | Binaire final distribué              | 1/4       | I, A    |
+| B4  | Journaux de signature   | Preuves et traçabilité               | 2/4       | I, T, A |
+| B5  | Logiciel source entrant | Binaire à signer depuis CD-ROM amont | 3/4       | I, A    |
 
-#### Biens
-
-| ID  | Bien / Service          | Description                          | Criticité | Besoins principaux |
-| --- | ----------------------- | ------------------------------------ | --------- | ------------------ |
-| B1  | Clé privée de signature | Secret de signature                  | 4/4       | C, I, A            |
-| B2  | Logiciel signé          | Binaire final distribué              | 1/4       | I, A               |
-| B4  | Journaux de signature   | Preuves et traçabilité               | 2/4       | I, T, A            |
-| B5  | Logiciel source entrant | Binaire à signer depuis CD-ROM amont | 3/4       | I, A               |
-
-### Attaquants
-
+## Attaquants
 | ID  | Attaquant                         | Motivation | Ressources | Activité | Pertinence |
 | --- | --------------------------------- | ---------- | ---------- | -------- | ---------- |
 | A1  | Externe opportuniste              | ++         | ++         | ++       | Moyenne    |
@@ -57,9 +96,9 @@ Notation: C=Confidentialité, I=Intégrité, D=Disponibilité, T=Traçabilité, 
 
 ---
 
-## Chapitre 2 : Événements redoutés
+# Chapitre 2 : Événements redoutés
 
-Notation: C=Confidentialité, I=Intégrité, D=Disponibilité, T=Traçabilité, A=Authenticité.
+*Notation: C=Confidentialité, I=Intégrité, D=Disponibilité, T=Traçabilité, A=Authenticité.*
 
 | ER ID | Actif impacté          | Besoin compromis | Description                                     | Impact (1-5) |
 | ----- | ---------------------- | ---------------- | ----------------------------------------------- | ------------ |
@@ -73,7 +112,7 @@ Notation: C=Confidentialité, I=Intégrité, D=Disponibilité, T=Traçabilité, 
 
 ---
 
-## Chapitre 3 : Scénarios de menace
+# Chapitre 3 : Scénarios de menace
 
 | Scénario | Source     | Vulnérabilité clé                  | Événement redouté | Probabilité |
 | -------- | ---------- | ---------------------------------- | ----------------- | ----------- |
@@ -86,7 +125,7 @@ Notation: C=Confidentialité, I=Intégrité, D=Disponibilité, T=Traçabilité, 
 
 ---
 
-## Chapitre 4 : Risques (cotation)
+# Chapitre 4 : Risques (cotation)
 
 Échelle: Probabilité L(1)/M(2)/H(3); Score = P × Impact.
 
@@ -110,9 +149,9 @@ Matrice :
     
 ---
 
-## Chapitre 5 : Mesures de sécurité
+# Chapitre 5 : Mesures de sécurité
 
-### Mesures principales (prioritaires)
+## Mesures principales (prioritaires)
 | Risque | Mesure synthétique                                                         | Type                 |
 | ------ | -------------------------------------------------------------------------- | -------------------- |
 | S4     | Scan antivirus + vérification hash des médias sources                      | Prévention/Détection |
@@ -122,7 +161,7 @@ Matrice :
 | S6     | Sauvegarde périodique + poste de secours préconfiguré                      | Résilience           |
 | S5     | Stockage des logs imuables + extraction et sauvgarde à chaque manipulation | Prévention           |
 
-### Mesures complémentaires
+## Mesures complémentaires
 - Whitelisting applicatif; blocage de l'exécution non autorisée (réduit S4 et dérivés).
 - Contrôles physiques (scellés, vidéosurveillance) pour accès au poste et aux médias.
 - Durcissement OS et mises à jour via médias vérifiés; formation des opérateurs.
