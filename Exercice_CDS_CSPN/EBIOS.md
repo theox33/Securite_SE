@@ -1,137 +1,185 @@
-# Analyse de risque EBIOS – Outil de signature Signop  
+---
+title: "Analyse de risque EBIOS et CDS CSPN – Outil de signature Signop"
+geometry: margin=2cm
+author: "Théo AVRIL"
+date: "19 nov 2025"
+toc: true
+toc-title: "Sommaire"
+---
 
 ## Chapitre 1 – Contexte
 
-### 1.1 Périmètre de l’étude
+### 1.1 Présentation de l’outil
 
-**Objet étudié**
+Le produit **Signop Référence 098 345 – version 1.0.2** est un outil de **signature de logiciels embarqués**.  
+Il fonctionne de la manière suivante :
 
-- Produit : **Signop Référence 098 345 – version 1.0.2**
-- Rôle : outil de **signature de logiciels embarqués** à partir de CD-ROM.
+- Des **logiciels de produits embarqués** sont fournis sur des **CD‑ROM amont**.
+- Signop **vérifie et signe** ces logiciels en utilisant une **clé privée de signature**.
+- Les logiciels signés sont ensuite **gravés sur des CD‑ROM aval** destinés à la production / au client.
+- La **clé de signature** est injectée une seule fois, en phase de configuration, via un CD‑ROM dédié.
 
-**Périmètre technique inclus**
+### 1.2 Périmètre de l’étude
 
-- Postes de travail hébergeant le logiciel Signop (matériel, OS, comptes locaux).
-- Logiciel **Signop** (binaire, fichiers de configuration, modules de signature).
-- **Flux CD-ROM entrants** :
-  - CD contenant les logiciels de produits embarqués à signer.
-  - CD spécial d’injection de la clé de signature (phase de configuration).
-- **Flux CD-ROM sortants** :
-  - CD contenant les logiciels signés.
-- Stockage de la **clé de signature** dans l’outil après injection.
-- Journaux / fichiers de log générés par Signop.
-- Réseaux éventuellement connectés au poste Signop (LAN, mises à jour, etc.).
+**Inclus dans le périmètre**
 
-**Hors périmètre direct mais impactés**
+- Le **poste de signature** :
+  - Matériel du poste.
+  - Système d’exploitation (Linux durci).
+  - Application de signature **Signop** (binaire, configuration).
+- Les **médias amont** :
+  - CD‑ROM contenant les binaires sources à signer.
+  - CD‑ROM d’injection de la clé de signature.
+- Les **médias aval** :
+  - CD‑ROM contenant les logiciels signés.
+- La **clé privée de signature**, telle qu’elle est stockée et utilisée sur le poste.
+- Les **journaux de signature** et la **traçabilité** associée.
 
-- Les systèmes embarqués qui recevront les logiciels signés.
-- Les chaînes de production / clients finaux consommant les CD-ROM signés.
+![Périmètre de l'étude – outil Signop](perimetre-ebios-signop.png)
 
----
+_Figure 1 : représentation synthétique du périmètre technique et des flux médias (extrait du diagramme PlantUML)._ 
 
-### 1.2 Valeurs métiers et services essentiels
+**Exclus du périmètre (mais impactés)**
 
-#### 1.2.1 Valeurs métiers / services
+- Le processus de **développement** des logiciels sources.
+- Le **transport** et la **distribution** des médias amont et aval (au sens logistique global).
+- Les services de **maintenance** hors opérations de signature.
+- Les systèmes embarqués finaux qui consommeront les logiciels signés.
 
-| ID VM | Valeur métier / Service                          | Description                                                                                  | Criticité (1–4) |
-|:-----:|--------------------------------------------------|----------------------------------------------------------------------------------------------|:---------------:|
-| VM1   | Authenticité des logiciels livrés                | Les logiciels embarqués fournis au client doivent être authentiques et non modifiés.        |        4        |
-| VM2   | Intégrité des logiciels signés                   | Les binaires signés doivent être strictement conformes à ceux validés.                      |        4        |
-| VM3   | Confidentialité & intégrité de la clé de signature | La clé de signature ne doit jamais être divulguée, copiée ou altérée.                       |        4        |
-| VM4   | Disponibilité du processus de signature          | L’outil doit être disponible pour permettre la production industrielle.                     |        3        |
-| VM5   | Traçabilité des opérations de signature          | Être capable de prouver qui a signé quoi, quand, avec quelle version.                       |        3        |
+**Hypothèses de déploiement**
 
-#### 1.2.2 Biens supports essentiels
-
-| ID Bien | Bien support                       | Lié à VM                   | Propriétés critiques (D/I/C) | Criticité (1–4) |
-|:-------:|------------------------------------|----------------------------|------------------------------|:---------------:|
-| B1      | Clé de signature (clé privée)      | VM1, VM2, VM3              | I, C                         |        4        |
-| B2      | Logiciels à signer (CD entrants)   | VM1, VM2                   | I                            |        3        |
-| B3      | Logiciels signés (CD sortants)     | VM1, VM2                   | I                            |        4        |
-| B4      | Poste de travail Signop (matériel + OS) | VM2, VM4               | D, I                         |        3        |
-| B5      | Logiciel Signop (binaire, config)  | VM1, VM2, VM4              | I                            |        4        |
-| B6      | CD d’injection de la clé           | VM3                        | I, C                         |        4        |
-| B7      | Journaux et traces de signature    | VM5                        | I                            |        3        |
-| B8      | Procédures / documentation         | VM5                        | I                            |        2        |
+- Le poste Signop est **isolé**, non connecté à un réseau de production ou à Internet
+  (hors éventuelles opérations de maintenance encadrées).
+- L’outil refuse toute communication autre que via les médias amont/aval (CD‑ROM).
+- Les opérateurs sont **formés** à l’utilisation de l’outil.
+- Les médias amont et aval proviennent en principe d’un **tiers de confiance**, mais peuvent être
+compromis (hypothèse de menace).
 
 ---
 
-### 1.3 Sources de risque / Attaquants
+### 1.3 Valeurs métiers et services essentiels
 
-| ID Source | Source de risque / Attaquant           | Description                                                       | Motivation typique                      | Ressources           | Pertinence |
-|:---------:|----------------------------------------|-------------------------------------------------------------------|-----------------------------------------|----------------------|-----------|
-| A1        | Opérateur légitime malveillant         | Employé ayant accès à Signop et détournant le processus.         | Sabotage, fraude, intérêt financier     | Accès physique & logique | Élevée    |
-| A2        | Opérateur négligent                    | Employé commettant des erreurs de manipulation.                  | Manque de rigueur, fatigue, méconnaissance | Faibles compétences techniques | Élevée    |
-| A3        | Attaquant externe / malware            | Malware ou attaquant distant cherchant à compromettre Signop.    | Compromettre la clé ou les logiciels    | Exploit OS/réseau, supports amovibles | Moyenne à élevée |
-| A4        | Fournisseur / transport de CD compromis | Acteur ayant accès aux CD avant ou après signature.              | Introduire des modifications malveillantes | Accès aux supports physiques | Moyenne   |
-| A5        | Administrateur système malveillant     | Admin disposant de droits étendus sur le système.                | Accès privilégié, copie de clé, effacement de logs | Droits élevés sur le poste | Moyenne   |
+Notation utilisée dans les tableaux :
+- **C** = Confidentialité
+- **I** = Intégrité
+- **D** = Disponibilité
+- **T** = Traçabilité
+- **A** = Authenticité
+
+#### 1.3.1 Valeurs métiers / services
+
+| ID VM | Valeur métier / Service               | Description                                                                 | Criticité (1–4) | Besoins principaux |
+|:-----:|--------------------------------------|-----------------------------------------------------------------------------|:---------------:|--------------------|
+| VM1   | Authenticité des logiciels livrés    | Les logiciels embarqués livrés doivent être authentiques, non contrefaits. |        4        | I, A               |
+| VM2   | Intégrité des logiciels signés       | Les binaires signés doivent rester strictement conformes aux versions validées. |     4        | I, A               |
+| VM3   | Protection de la clé de signature    | La clé privée ne doit jamais être divulguée, copiée ou altérée.            |        4        | C, I, A            |
+| VM4   | Disponibilité du processus de signature | La chaîne de signature doit être disponible pour ne pas bloquer la production. |     3        | D                  |
+| VM5   | Traçabilité des opérations           | Il doit être possible de prouver qui a signé quoi, quand, avec quelle version. |    3        | T, I, A            |
+
+#### 1.3.2 Biens supports essentiels
+
+| ID Bien | Bien / Actif                     | Lié à VM              | Description                                         | Criticité (1–4) | Besoins principaux |
+|:-------:|----------------------------------|-----------------------|-----------------------------------------------------|:---------------:|--------------------|
+| B1      | Clé privée de signature          | VM1, VM2, VM3         | Secret de signature utilisé par Signop              |        4        | C, I, A            |
+| B2      | Logiciels sources (CD amont)     | VM1, VM2              | Binaires à signer, fournis sur médias amont         |        3        | I, A               |
+| B3      | Logiciels signés (CD aval)       | VM1, VM2              | Binaires finaux signés, destinés aux systèmes embarqués |     4        | I, A               |
+| B4      | Poste de signature (matériel + OS) | VM2, VM4            | Poste Linux durci hébergeant Signop                 |        3        | D, I               |
+| B5      | Logiciel Signop (binaire, config) | VM1, VM2, VM4        | Application de signature proprement dite            |        4        | I, D               |
+| B6      | CD d’injection de clé            | VM3                   | Support physique injectant la clé privée            |        4        | C, I, A            |
+| B7      | Journaux et traces de signature  | VM5                   | Preuves et traces des opérations                    |        3        | I, T, A            |
+| B8      | Procédures / documentation       | VM5                   | Procédures d’exploitation et de contrôle            |        2        | I                  |
+
+---
+
+### 1.4 Attaquants / sources de risque
+
+| ID  | Attaquant / Source                     | Description synthétique                                       | Motivation | Ressources | Activité | Pertinence |
+|:---:|----------------------------------------|----------------------------------------------------------------|-----------|-----------:|---------:|-----------|
+| A1  | Externe opportuniste                   | Attaquant non ciblé, profitant d’une faille ou d’un support compromis | ++        | ++        | ++       | Moyenne    |
+| A2  | Externe ciblé (sophistiqué)           | Attaquant dédié (APT, concurrent malveillant…) visant la clé ou le process | +++       | +++       | +++      | Élevée     |
+| A3  | Employé malveillant (insider)         | Opérateur ou personne interne détournant l’outil               | +         | +++       | +        | Faible à moyenne |
+| A4  | Fournisseur du binaire / des médias   | Tiers fournissant les binaires ou les médias amont            | +         | ++        | +        | Faible à moyenne |
+| A5  | Administrateur système malveillant     | Admin ayant des droits élevés sur le poste de signature       | ++        | +++       | ++       | Moyenne à élevée |
 
 ---
 
 ## Chapitre 2 – Événements redoutés
 
-| ID ER | Événement redouté                                                                 | VM impactées      | Biens impactés        | Gravité (1–4) | Types d’impact                                                                                 |
-|:-----:|-----------------------------------------------------------------------------------|-------------------|-----------------------|:-------------:|-----------------------------------------------------------------------------------------------|
-| ER1   | Signature d’un logiciel modifié ou malveillant (contrefait mais vu comme légitime) | VM1, VM2          | B2, B3, B5            |       4       | Sécurité des systèmes embarqués, image de marque, responsabilité juridique                    |
-| ER2   | Compromission de la clé de signature (copie, fuite, usage non autorisé)          | VM1, VM2, VM3     | B1, B6                |       4       | Possibilité de signer hors contrôle, création de faux produits, crise d’image                |
-| ER3   | Indisponibilité prolongée de Signop (impossibilité de signer)                     | VM4               | B4, B5                |       3       | Retards de production, pénalités contractuelles, coûts supplémentaires                         |
-| ER4   | Perte ou altération des journaux de signature (traçabilité incomplète ou fausse)  | VM5               | B7                    |       3       | Impossibilité d’enquêter, difficulté à prouver la conformité, risques juridiques              |
-| ER5   | Destruction ou corruption des logiciels à signer avant signature                  | VM1, VM2          | B2                    |       3       | Retards de livraison, nécessité de régénérer les binaires, risque de signer une mauvaise version |
+Échelle d’impact : **1 (faible) à 5 (catastrophique)**.
+
+| ER ID | Actif impacté                     | Besoin compromis   | Description de l’événement redouté                        | Impact (1–5) |
+|:-----:|-----------------------------------|--------------------|-----------------------------------------------------------|:------------:|
+| ER1   | Clé privée (B1)                   | C                  | Divulgation ou copie de la clé de signature               |      5       |
+| ER2   | Clé privée (B1)                   | I, A               | Altération, substitution ou usage non autorisé de la clé  |      5       |
+| ER3   | Logiciel signé (B3)               | I, A               | Injection de code malveillant signé comme légitime        |      5       |
+| ER4   | Journaux (B7)                     | I, T, A            | Altération ou effacement des journaux de signature        |      4       |
+| ER5   | Poste / service de signature (B4,B5) | D                | Indisponibilité du poste ou du processus de signature     |      3       |
+| ER6   | Logiciel source avant signature (B2) | I                | Altération du binaire avant signature                     |      4       |
+| ER7   | Fonctionnement global (VM1–VM5)   | I, D               | Outil Signop inutilisable ou produisant des signatures incorrectes | 2 |
 
 ---
 
 ## Chapitre 3 – Scénarios de menace
 
-Probabilité :  
-1 = faible, 2 = moyenne, 3 = élevée.
+Probabilité : **Légère (1), Moyenne (2), Haute (3)**.
 
-| ID Scénario | Source de risque | ER ciblé | Description du scénario                                                                                                                                           | Probabilité (1–3) |
-|:-----------:|------------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------:|
-| SM1         | A1 – Opérateur malveillant | ER1 | L’opérateur remplace le CD à signer par un CD contenant un logiciel modifié, puis lance une signature “normale” via Signop.                                     |         2         |
-| SM2         | A2 – Opérateur négligent  | ER1 / ER5 | L’opérateur mélange des CD ou se trompe de version, signe un logiciel non validé ou écrase par erreur les bons CD avec de mauvaises images.                     |         3         |
-| SM3         | A3 – Attaquant externe / malware | ER1 / ER2 | Un malware présent sur le poste Signop ou sur un support USB modifie les fichiers à signer ou lit la clé de signature en mémoire / sur disque.                 |         2         |
-| SM4         | A4 – Interception / manipulation de CD | ER1 / ER5 | Un acteur malveillant manipule les CD pendant le transport (avant ou après signature) et introduit des logiciels modifiés ou détruit le contenu.                |         2         |
-| SM5         | A5 – Administrateur système malveillant | ER2 / ER4 | L’admin ayant des droits élevés copie la clé de signature ou efface/altère les journaux de signature pour masquer des actions.                                  |         2         |
-| SM6         | A1 / A2 – Mauvaise gestion du CD d’injection de clé | ER2 | Mauvaise gestion du CD de clé (copie non autorisée, stockage non sécurisé, perte), entraînant la fuite ou l’usage non maîtrisé de la clé de signature.          |         2         |
+| Scénario | Source     | Vulnérabilité clé / Condition            | ER ciblé         | Description du scénario                                                                 | Probabilité |
+|:--------:|------------|------------------------------------------|------------------|-----------------------------------------------------------------------------------------|:-----------:|
+| S1       | A3         | Clé accessible en clair sur disque / mémoire | ER1           | Un employé malveillant accède au fichier ou à la zone mémoire contenant la clé et en fait une copie. | Moyenne (2) |
+| S2       | A2         | Absence de sécurisation forte de la clé  | ER1, ER2        | Un attaquant sophistiqué exploite une faiblesse technique (failles OS, maintenance, etc.) pour récupérer ou substituer la clé. | Légère à moyenne (1–2) |
+| S3       | A3         | Absence de double contrôle / 4‑eyes      | ER2             | L’insider modifie la clé de signature ou injecte une autre clé sans contrôle croisé.   | Moyenne (2) |
+| S4       | A4         | Absence de scan / hash des médias amont  | ER3, ER6        | Le fournisseur (ou la chaîne amont) fournit un CD contenant un binaire altéré ou malveillant, qui est signé tel quel. | Haute (3)   |
+| S5       | A5         | Journaux non protégés / non externalisés | ER4             | L’administrateur modifie ou efface des logs pour masquer certaines opérations.          | Légère (1)  |
+| S6       | A1, A2, A3 | Manque de redondance / sauvegarde        | ER5, ER7        | Panne matérielle, erreur de manipulation ou attaque entraînant la perte du poste Signop ou de sa configuration. | Moyenne (2) |
+
+> Remarque : en pratique, S2 peut être noté à **2 (moyenne)** si l’on considère que l’attaquant ciblé est réellement crédible dans le contexte.
 
 ---
 
 ## Chapitre 4 – Risques (cotation)
 
-Grille indicative de niveau de risque en fonction du produit **Impact × Probabilité** :
+Échelle :  
+- Probabilité : **Légère (1) / Moyenne (2) / Haute (3)**  
+- Impact : **1 à 5**  
+- Score = Probabilité × Impact
 
-- 1–3  → Faible  
-- 4–6  → Moyen  
-- 7–9  → Élevé / Critique
+| Scénario | Probabilité (1–3) | Impact max (ER) | Score | Niveau de risque |
+|:--------:|:-----------------:|:---------------:|:-----:|------------------|
+| S1       |         2         |        5        |  10   | Élevé            |
+| S2       |         1         |        5        |   5   | Modéré           |
+| S3       |         2         |        5        |  10   | Élevé            |
+| S4       |         3         |        5        |  15   | Critique         |
+| S5       |         1         |        4        |   4   | Modéré           |
+| S6       |         2         |        3        |   6   | Modéré           |
 
-| ID Risque | Scénario | ER associé | Impact (1–4) | Probabilité (1–3) | Score I×P | Niveau           |
-|:---------:|----------|-----------|:------------:|:-----------------:|:---------:|------------------|
-| R1        | SM1 – Opérateur malveillant modifie le logiciel à signer | ER1 | 4 | 2 | 8 | **Élevé**        |
-| R2        | SM2 – Erreur d’opérateur (mauvaise version signée)       | ER1 / ER5 | 4 | 3 | 12 | **Élevé / Critique** |
-| R3        | SM3 – Malware sur le poste Signop                        | ER1 / ER2 | 4 | 2 | 8 | **Élevé**        |
-| R4        | SM5 – Admin système copie la clé ou efface les logs      | ER2 / ER4 | 4 | 2 | 8 | **Élevé**        |
-| R5        | SM4 – Manipulation des CD en transport                   | ER1 / ER5 | 3 | 2 | 6 | Moyen            |
-| R6        | SM6 – Mauvaise gestion du CD d’injection de clé         | ER2       | 4 | 2 | 8 | **Élevé**        |
+### Matrice de risque
+
+|               | Impact 1 | Impact 2 | Impact 3 | Impact 4 | Impact 5 |
+|---------------|----------|----------|----------|----------|----------|
+| Probabilité 1 |          |          |          | S5       | S2       |
+| Probabilité 2 |          |          | S6       |          | S1, S3   |
+| Probabilité 3 |          |          |          |          | S4       |
+
+Les risques **prioritaires** sont donc :
+
+- **S4** (critique) – Binaire malveillant fourni et signé.
+- **S1** et **S3** (élevés) – Divulgation ou modification de la clé par un insider.
+- Accessoirement, **S6** (modéré) – perte du poste ou de la configuration, et **S5** (modéré) – altération de la traçabilité.
 
 ---
 
 ## Chapitre 5 – Mesures de sécurité
 
-Les mesures ci-dessous visent prioritairement les risques de niveau **Élevé** (R1, R2, R3, R4, R6).
+Les mesures sont regroupées par risque principal, en distinguant **Prévention**, **Détection** et **Réaction / Résilience**.
 
-| Risque ciblé | Objectif de sécurité                                             | Mesures de sécurité proposées                                                                                                                                                                             | Type (Prévention / Détection / Réaction) |
-|--------------|------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
-| R1 – Opérateur malveillant modifie les logiciels | Garantir que seuls les logiciels validés sont signés | - Procédure de validation préalable (double contrôle) des binaires à signer.  \n- Séparation des rôles : préparation des CD vs opération de signature.  \n- Vérification systématique par hash (SHA-256) avant signature. | Prévention |
-|              |                                                                  | - Contrôle d’intégrité automatisé des images avant et après signature.  \n- Journalisation détaillée (qui signe quoi, quand) avec revue périodique.                                                     | Détection   |
-| R2 – Erreurs d’opérateur (mauvaises versions signées) | Réduire les risques de confusion et d’erreur humaine | - Nommage / étiquetage strict des CD-ROM.  \n- Check-list de vérification avant chaque session de signature.  \n- Interface Signop guidée (sélection explicite de la version, confirmation).  \n- Formation des opérateurs. | Prévention |
-|              |                                                                  | - Journalisation automatique des opérations.  \n- Revue régulière des journaux pour détecter des anomalies (fréquence inhabituelle, erreurs répétées).                                                   | Détection   |
-| R3 – Malware sur le poste Signop            | Protéger l’environnement d’exécution de Signop      | - Poste **dédié** à la signature, si possible isolé du réseau ou sur un réseau très restreint.  \n- Désactivation des ports USB non nécessaires.  \n- Politique d’installation stricte des logiciels (whitelisting). | Prévention |
-|              |                                                                  | - Antivirus / antimalware à jour.  \n- Surveillance de l’intégrité du binaire Signop et de l’OS (checksums, contrôle de conformité).                                                                     | Détection   |
-| R4 – Admin système malveillant / logs altérés | Assurer la confidentialité de la clé et l’intégrité des journaux | - Utilisation d’un module sécurisé (HSM ou équivalent) pour stocker la clé : jamais en clair sur disque.  \n- Séparation des rôles : admin système ≠ admin sécurité.  \n- Accès à la clé soumis au principe du double contrôle (4-eyes). | Prévention |
-|              |                                                                  | - Journaux signés ou envoyés vers un serveur de logs centralisé (SIEM), non modifiable par un seul admin.  \n- Revues et audits réguliers des journaux d’administration et de signature.                 | Détection   |
-| R6 – Mauvaise gestion du CD d’injection de clé | Sécuriser la phase d’injection et la vie du support de clé | - Conservation du CD de clé dans un coffre sécurisé, accès tracé et limité.  \n- Procédure d’utilisation documentée (qui, comment, où, quand).  \n- Destruction sécurisée du CD après usage si le procédé le permet, ou stockage chiffré. | Prévention |
-| Tous         | Maintenir le niveau global de sécurité                   | - Sensibilisation régulière des opérateurs et administrateurs.  \n- Audits périodiques de la procédure de signature et tests de reprise après incident (poste de secours, restauration).                | Prévention / Réaction |
+### 5.1 Mesures prioritaires
+
+| Risque (Scénario) | Objectif de sécurité                                  | Mesures de sécurité principales                                                                                           | Type                      |
+|-------------------|-------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|---------------------------|
+| S4 – Binaire malveillant signé | Empêcher la signature de binaires non validés | - Mise en place d’un **processus de contrôle des médias amont** : scan antivirus, vérification de hash (SHA‑256) par rapport à une référence.<br>- Acceptation uniquement de sources **sur liste blanche** (fournisseurs autorisés).<br>- Procédure écrite de vérification avant signature (check‑list). | Prévention / Détection    |
+| S1 – Fuite de clé par insider  | Protéger la confidentialité de la clé       | - Stockage de la clé dans un **HSM** ou module sécurisé dédié, jamais en clair sur disque.<br>- Verrouillage des accès au poste (authentification forte, verrouillage automatique de session). | Prévention                |
+| S3 – Modification de clé sans contrôle | Garantir l’intégrité et l’authenticité de la clé | - Procédure d’injection / remplacement de clé avec **double contrôle (4‑eyes)**.<br>- Journalisation détaillée de toute opération sur la clé (qui, quand, comment). | Prévention / Détection    |
+| S5 – Logs altérés                | Assurer la traçabilité fiable               | - Stockage des journaux sur un support **non modifiable** ou externalisé (serveur de logs, collecte régulière).<br>- Signature ou hachage des fichiers de logs. | Prévention / Détection    |
+| S6 – Perte du poste / service   | Assurer la disponibilité et la reprise      | - Sauvegardes périodiques de la configuration et des clés (dans des modules sécurisés).<br>- Préparation d’un **poste de secours** pré‑configuré. | Résilience / Réaction     |
 
 ---
-
-_Fin du document EBIOS pour Signop Réf. 098 345 v1.0.2._
