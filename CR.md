@@ -24,7 +24,8 @@ header-includes:
 - [6. Analyse statique — Code C et assembleur, ELF et strip](#6-analyse-statique--code-c-et-assembleur-elf-et-strip)
 - [7. Analyse dynamique — Prise en main de gdb arm64](#7-analyse-dynamique--prise-en-main-de-gdb-arm64)
 - [8. Exercice ps4 — Périmètre ebios (modélisation périmètre métiertechnique)](#8-exercice-ps4--périmètre-ebios-modélisation-périmètre-métiertechnique)
-- [9. Synthèse globale du projet](#9-synthèse-globale-du-projet)
+- [9. Exercice analyse de risques — PS4](#9-exercice-analyse-de-risques--ps4)
+- [10. Synthèse globale du projet](#10-synthèse-globale-du-projet)
 
 ## 1. Protection_AES — Chiffrement symétrique avec OpenSSL
 
@@ -662,7 +663,68 @@ Cette vision globale servira ensuite de base aux études de menaces et scénario
 
 ---
 
-## 9. Synthèse globale du projet
+## 9. Exercice analyse de risques — PS4
+
+Cette activité complète le travail de modélisation du périmètre en allant jusqu'à une analyse de risques EBIOS formalisée sous PowerPoint (`Exercice PS4/Atelier 1/Diaporama.pptx`). Les images ci-dessous sont générées grâce à la cible `.slides` du `Makefile` (
+`libreoffice --headless` puis `convert -density 300 ...`).
+
+### 9.1 Objectif et consignes
+
+![Titre et objectifs de l'exercice](Exercice PS4/Atelier 1/Diaporama-00.png)
+
+Cette première diapo rappelle la commande de Sony : conduire une analyse de risques PS4 structurée selon les cinq chapitres EBIOS (Contexte → Mesures) et préparer un support convaincant pour la direction sécurité.
+
+### 9.2 Chapitre 1 — Contexte
+
+![Périmètre technique détaillé](Exercice PS4/Atelier 1/Diaporama-01.png)
+
+On y précise les limites techniques (console, périphériques, PSN, box Internet) et les modes de connexion. Cette cartographie s'appuie sur le diagramme PlantUML détaillé en section 8.
+
+![Biens et services essentiels](Exercice PS4/Atelier 1/Diaporama-02.png)
+
+Cette planche inventorie les biens critiques (données joueurs, catalogue PS Store, services multimédias, réputation de marque) et associe des exigences CIA pour guider l'évaluation des impacts.
+
+![Profils d'attaquants](Exercice PS4/Atelier 1/Diaporama-03.png)
+
+Les profils identifiés couvrent les joueurs malveillants, les équipes de hacking spécialisées, les fournisseurs de cheat payants et des acteurs plus structurés pouvant viser la plateforme. Pour chacun, on rappelle motivations et ressources.
+
+### 9.3 Chapitre 2 — Événements redoutés
+
+![Catalogue des événements redoutés](Exercice PS4/Atelier 1/Diaporama-04.png)
+
+La diapo relie chaque bien à un événement redouté et qualifie l'impact (financier, légal, image, disponibilité). Cette liste sert de pivot pour le chaînage scénarios → risques.
+
+### 9.4 Chapitre 3 — Scénarios de menace
+
+![Chaînes d'attaque identifiées](Exercice PS4/Atelier 1/Diaporama-05.png)
+
+Chaque scénario décrit le chemin d'attaque (point d'entrée, vulnérabilité exploitée, objectif) et référence les événements redoutés affectés.
+
+![Évaluation des probabilités](Exercice PS4/Atelier 1/Diaporama-06.png)
+
+Une grille de vraisemblance est appliquée à chaque scénario, en tenant compte des capacités des attaquants et des protections existantes (Secure Boot, hyperviseur, supervision PSN, etc.).
+
+### 9.5 Chapitre 4 — Risques
+
+![Matrice de cotation des risques](Exercice PS4/Atelier 1/Diaporama-07.png)
+
+Les scénarios sont positionnés dans une matrice Gravité × Probabilité pour faciliter la priorisation. Les zones rouge/orange identifient les risques nécessitant des mesures immédiates.
+
+### 9.6 Chapitre 5 — Mesures de sécurité
+
+![Mesures de sécurité recommandées](Exercice PS4/Atelier 1/Diaporama-08.png)
+
+Les contre-mesures proposées couvrent le renforcement des protections logicielles (chaîne de confiance, détection de jailbreak), l'amélioration de la télémétrie PSN, les contrôles physiques (ports USB) et des actions de sensibilisation.
+
+### 9.7 Synthèse visuelle
+
+![Synthèse finale et prochaines étapes](Exercice PS4/Atelier 1/Diaporama-09.png)
+
+La diapo de clôture résume les risques résiduels, fixe les jalons (quick wins vs. projets structurants) et renvoie vers les artefacts détaillés stockés dans le dépôt (`perimetre.puml`, tableaux EBIOS, scripts de génération).
+
+---
+
+## 10. Synthèse globale du projet
 
 Ce projet couvre plusieurs briques fondamentales de la sécurité des systèmes d’exploitation :
 
