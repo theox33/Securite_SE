@@ -34,8 +34,8 @@ openssl enc -aes-256-cbc -in hello.txt -out hello.enc -K <clé_hex_64_chars> -iv
 
 Ici :
 - `-aes-256-cbc` : algorithme AES 256 bits en mode CBC ;
-- `-K` : clé **en hexadécimal**, 32 octets ⇒ 64 caractères hex ;
-- `-iv` : vecteur d’initialisation (IV) en hexadécimal, 16 octets ⇒ 32 caractères hex.
+- `-K` : clé **en hexadécimal**, 32 octets -> 64 caractères hex ;
+- `-iv` : vecteur d’initialisation (IV) en hexadécimal, 16 octets -> 32 caractères hex.
 
 ### 1.3 Étapes pas à pas
 
@@ -84,7 +84,7 @@ Ici :
 ### 1.5 Intérêt et points d’attention
 
 - Comprendre la **taille exacte** attendue des clés et IV pour AES-256-CBC.
-- Visualiser le rôle du couple (clé, IV) : même clé mais IV différent ⇒ chiffré différent.
+- Visualiser le rôle du couple (clé, IV) : même clé mais IV différent -> chiffré différent.
 - Ne jamais réutiliser la même paire (clé, IV) sur plusieurs messages en mode CBC.
 - En pratique, privilégier un mode authentifié (AES-GCM) et une gestion robuste des clés.
 
@@ -179,7 +179,7 @@ Pour un gros fichier, `openssl pkeyutl -sign` direct n’est pas adapté. La bon
 - Si la signature est correcte :
   - aucune sortie texte, mais code de retour 0 (`$? == 0`).
 - Si le message a été modifié ou la clé publique ne correspond pas :
-  - `openssl` affiche une erreur et renvoie un code ≠ 0.
+  - `openssl` affiche une erreur et renvoie un code != 0.
 
 ### 2.6 Intérêt et points d’attention
 
@@ -305,7 +305,7 @@ Le mot de passe attendu est `CAFECAFE` (8 caractères hex), comparaison insensib
 
 - Mot de passe correct immédiatement : `MDP OK`, fin du programme.
 - Mot de passe erroné <= 3 fois : `MDP KO` à chaque fois, sans délai.
-- À partir du 3ᵉ échec :
+- À partir du 3e échec :
   - l’utilisateur voit un compte à rebours avant tout nouvel essai ;
   - ceci rend toute attaque par essais rapides beaucoup plus lente.
 
@@ -546,7 +546,7 @@ Signification des options :
 - `-g` : inclut les symboles de debug (noms de fonctions, lignes source) pour GDB.
 - `-fno-stack-protector` : désactive les **canaris de pile** (protection contre les overflows).
 - `-z execstack` : rend la pile exécutable (dangereux en production, utile pour tester les exploits avec shellcode).
-- `-no-pie` : binaire non PIE ⇒ adresses virtuelles **fixes**, plus simples à analyser et exploiter.
+- `-no-pie` : binaire non PIE -> adresses virtuelles **fixes**, plus simples à analyser et exploiter.
 
 ### 7.4 Correspondance des registres x86_64 / ARM64
 
@@ -619,12 +619,12 @@ Le fichier définit des composants techniques :
 - `PS4`, `TV`, `Sono`, `CD`, `Disque dur interne`, `Disque dur externe`, `Box`, `Internet`, `Clavier`, `Caméra`, `Casque`, `Clé USB`, `Manette`…
 
 Et les **liaisons** :
-- PS4 ↔ TV : HDMI ;
-- PS4 ↔ Sono : audio (PiF) ;
-- PS4 ↔ Box : WiFi, Ethernet ;
-- PS4 ↔ Manette / Clavier / Caméra / USB / Casque / HDD externe : USB ;
-- PS4 ↔ Casque / Manette : Bluetooth ;
-- Box ↔ Internet : connexion réseau.
+- PS4 <-> TV : HDMI ;
+- PS4 <-> Sono : audio (PiF) ;
+- PS4 <-> Box : WiFi, Ethernet ;
+- PS4 <-> Manette / Clavier / Caméra / USB / Casque / HDD externe : USB ;
+- PS4 <-> Casque / Manette : Bluetooth ;
+- Box <-> Internet : connexion réseau.
 
 ### 8.4 Génération du diagramme
 
